@@ -18,7 +18,8 @@ let
   accelerationPkgs = let
     nvidiaPkgs = (import pkgs.path { system = pkgs.hostPlatform.system; config.cudaSupport = true; config.allowUnfree = true; overlays = overlays; });
     rocmPkgs = (import pkgs.path { system = pkgs.hostPlatform.system; config.rocmSupport = true; config.allowUnfree = true; overlays = overlays; });
-  in if (cfg.acceleration == "cuda") then nvidiaPkgs else if (cfg.acceleration == "rocm") then rocmPkgs else pkgs;
+    xpuPkgs = (import pkgs.path { system = pkgs.hostPlatform.system; overlays = overlays; });
+  in if (cfg.acceleration == "cuda") then nvidiaPkgs else if (cfg.acceleration == "rocm") then rocmPkgs else if (cfg.acceleration == "xpu") then xpuPkgs else pkgs;
 
   staticUser = cfg.user != null && cfg.group != null;
 in
@@ -115,6 +116,7 @@ in
             false
             "rocm"
             "cuda"
+            "xpu"
           ]
         );
         default = null;
@@ -131,6 +133,8 @@ in
             - may require overriding gpu type with `services.comfyui.rocmOverrideGfx`
               if rocm doesn't detect your AMD gpu
           - `"cuda"`: supported by most modern NVIDIA GPUs
+          - `"xpu"`: supported by Intel Arc Graphics and Intel Ultra Core iGPUs
+            - requires Intel Extension for PyTorch (IPEX)
         '';
       };
 
@@ -217,6 +221,8 @@ in
             # ROCm
             "char-drm"
             "char-kfd"
+            # XPU (Intel Arc)
+            "char-dri"
           ];
           DevicePolicy = "closed";
           LockPersonality = true;
