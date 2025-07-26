@@ -11,6 +11,7 @@
         directory = ./pkgs;
       };
       comfyui = self.comfyuiPackages.comfyui;
+      comfyui-xpu = self.comfyuiPackages.comfyui.override { withXpu = true; };
     });
     nixosModules.comfyui = { ... }: let
       overlays = [
@@ -27,7 +28,7 @@
     checks.comfyui = pkgs.callPackage ./vm-test { nixosModule = inputs.self.nixosModules.comfyui; };
     packages = {
       comfyui-nvidia = nvidiaPkgs.comfyuiPackages.comfyui;
-      comfyui-xpu = pkgs.comfyuiPackages.comfyui.override { withXpu = true; };
+      comfyui-xpu = pkgs.comfyui-xpu;
       # ROCm support in nixpkgs is pretty bad right now
       # comfyui-amd = rocmPkgs.comfyuiPackages.comfyui;
     };
