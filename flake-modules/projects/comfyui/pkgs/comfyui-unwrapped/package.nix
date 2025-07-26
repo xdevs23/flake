@@ -103,7 +103,7 @@ python3Packages.buildPythonApplication rec {
     psutil
 
     # optional dependencies
-    (if withXpu then kornia.override { torch = torchPackages.torch; torchvision = torchPackages.torchvision; } else kornia)
+    (if withXpu then kornia.override { torch = torchPackages.torch; } else kornia)
     spandrel
     soundfile
   ];
