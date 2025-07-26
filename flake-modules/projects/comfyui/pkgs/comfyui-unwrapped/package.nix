@@ -2,9 +2,91 @@
 , fetchFromGitHub
 , python3Packages
 , python3
+, withXpu ? false
 }:
 let
   spandrel = python3Packages.callPackage ../../../../packages/spandrel/default.nix {};
+  
+  # Create XPU-enabled PyTorch packages using nightly wheels
+  torchPackages = if withXpu then (
+    let
+      pyVer = "cp${lib.replaceStrings ["."] [""] python3.pythonVersion}";
+      platform = if lib.hasInfix "linux" python3.stdenv.hostPlatform.system then "linux_x86_64" else "win_amd64";
+      manylinuxPlatform = if lib.hasInfix "linux" python3.stdenv.hostPlatform.system then "manylinux_2_28_x86_64" else "win_amd64";
+    in {
+      torch = python3Packages.buildPythonPackage rec {
+        pname = "torch";
+        version = "2.9.0.dev20250726+xpu";
+        format = "wheel";
+        
+        src = python3Packages.fetchPypi {
+          inherit pname version format;
+          dist = pyVer;
+          python = pyVer;
+          abi = pyVer;
+          platform = platform;
+          url = "https://download.pytorch.org/whl/nightly/xpu/torch-${version}-${pyVer}-${pyVer}-${platform}.whl";
+          hash = "sha256-qtmCRz753pJZ3cuDOOAAJVZ94L085gn5zH0Aplt6cC0=";
+        };
+        
+        dontBuild = true;
+        dontConfigure = true;
+        
+        propagatedBuildInputs = with python3Packages; [
+          numpy
+          pyyaml
+          requests
+          typing-extensions
+        ];
+      };
+      
+      torchvision = python3Packages.buildPythonPackage rec {
+        pname = "torchvision";
+        version = "0.24.0.dev20250726+xpu";
+        format = "wheel";
+        
+        src = python3Packages.fetchPypi {
+          inherit pname version format;
+          dist = pyVer;
+          python = pyVer;
+          abi = pyVer;
+          platform = manylinuxPlatform;
+          url = "https://download.pytorch.org/whl/nightly/xpu/torchvision-${version}-${pyVer}-${pyVer}-${manylinuxPlatform}.whl";
+          hash = "sha256-ivpudeUKhOD7OXFoOVYUnYQGj0BPazy1gahkS8/2yjc=";
+        };
+        
+        dontBuild = true;
+        dontConfigure = true;
+        
+        propagatedBuildInputs = [ torchPackages.torch ];
+      };
+      
+      torchaudio = python3Packages.buildPythonPackage rec {
+        pname = "torchaudio";
+        version = "2.8.0.dev20250726+xpu";
+        format = "wheel";
+        
+        src = python3Packages.fetchPypi {
+          inherit pname version format;
+          dist = pyVer;
+          python = pyVer;
+          abi = pyVer;
+          platform = manylinuxPlatform;
+          url = "https://download.pytorch.org/whl/nightly/xpu/torchaudio-${version}-${pyVer}-${pyVer}-${manylinuxPlatform}.whl";
+          hash = "sha256-Fogn36XmXtB5sz2UuPdMVmHkoqc5Kuvtyig8J/uVigA=";
+        };
+        
+        dontBuild = true;
+        dontConfigure = true;
+        
+        propagatedBuildInputs = [ torchPackages.torch ];
+      };
+    }
+  ) else {
+    torch = python3Packages.torch;
+    torchvision = python3Packages.torchvision;
+    torchaudio = python3Packages.torchaudio;
+  };
 in
 python3Packages.buildPythonApplication rec {
   pname = "comfyui";
@@ -18,10 +100,10 @@ python3Packages.buildPythonApplication rec {
   };
 
   dependencies = with python3Packages; [
-    torch
+    torchPackages.torch
     torchsde
-    torchvision
-    torchaudio
+    torchPackages.torchvision
+    torchPackages.torchaudio
     einops
     transformers
     tokenizers
@@ -37,7 +119,6 @@ python3Packages.buildPythonApplication rec {
     # optional dependencies
     kornia
     spandrel
-#    spandrel_extra_arches
     soundfile
   ];
 
@@ -53,11 +134,6 @@ python3Packages.buildPythonApplication rec {
   postPatch = ''
      substituteInPlace folder_paths.py \
        --replace-fail "os.path.dirname(os.path.realpath(__file__))" 'os.path.join(os.getenv("XDG_DATA_HOME", os.path.join(os.path.expanduser("~"), ".local", "share")), "comfyui")'
-
-#     substituteInPlace folder_paths.py \
-#       --replace-fail "os.path.dirname(os.path.realpath(__file__))" "os.getenv('COMFYUI_BASE_PATH')"
-#     substituteInPlace folder_paths.py \
-#       --replace-fail "os.path.dirname(os.path.realpath(__file__))" "os.getcwd()"
   '';
 
   nativeBuildInputs = [ python3 ];
