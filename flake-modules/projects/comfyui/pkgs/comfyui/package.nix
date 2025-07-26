@@ -10,16 +10,20 @@
   writeShellScript,
   withCustomNodes ? [],
   withModels ? [],
+  withXpu ? false,
 }:
 let
   customNodes = withCustomNodes;
   models = withModels;
 
+  # Create the unwrapped package with XPU support if requested
+  comfyui-unwrapped = if withXpu 
+    then comfyuiPackages.comfyui-unwrapped.override { withXpu = true; }
+    else comfyuiPackages.comfyui-unwrapped;
+
   # TODO: Maybe we should have a golden test, to check whether new folders have been unexpectedly added upstream
-  supportedFolders = lib.attrNames (builtins.readDir (comfyuiPackages.comfyui-unwrapped.src + "/models"));
-
+  supportedFolders = lib.attrNames (builtins.readDir (comfyui-unwrapped.src + "/models"));
   unsupportedFolders = lib.flatten (map (f: f.comfyui.installPaths) models);
-
   createModelsDir = models: let
     # Creates entires for the second linkFarm argument like:
     # [ { name = "hello-test"; path = pkgs.hello; } ]
@@ -36,7 +40,6 @@ let
       }) modelDrv.passthru.comfyui.installPaths
     ) models;
   in linkFarm "comfyui-models" linkFarmEntries;
-
   modelPathsFile = let
     modelsDir = "${createModelsDir models}/${python3Packages.python.sitePackages}";
   in writeTextFile {
@@ -47,7 +50,7 @@ in
 symlinkJoin {
   name = "comfyui-wrapped";
   paths = [
-    comfyuiPackages.comfyui-unwrapped
+    comfyui-unwrapped
    (createModelsDir models)
   ] ++ customNodes;
   propagatedBuildInputs = [
@@ -61,12 +64,12 @@ symlinkJoin {
       set -x
       DATA_HOME="''${XDG_DATA_HOME:-$HOME/.local/share}/comfyui"
       mkdir -p "$DATA_HOME"
-      cp -rT ${comfyuiPackages.comfyui-unwrapped.src} "$DATA_HOME"
+      cp -rT ${comfyui-unwrapped.src} "$DATA_HOME"
       chmod -R +w "$DATA_HOME" || true
     '';
   in ''
     rm $out/bin/comfyui
-    cp ${comfyuiPackages.comfyui-unwrapped}/bin/comfyui $out/bin/comfyui
+    cp ${comfyui-unwrapped}/bin/comfyui $out/bin/comfyui
     chmod +w $out/bin/comfyui
     echo $PYTHONPATH
     wrapProgram $out/bin/comfyui \
