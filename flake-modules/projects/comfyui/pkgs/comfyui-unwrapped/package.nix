@@ -8,61 +8,46 @@
 let
   spandrel = python3Packages.callPackage ../../../../packages/spandrel/default.nix {};
   
-  # Use existing torch from nixpkgs but override src to XPU wheel when needed
+  # Use existing torch from nixpkgs but override src to latest commits when XPU needed
   torchPackages = if withXpu then (
     let
-      pyVer = "cp${lib.replaceStrings ["."] [""] python3.pythonVersion}";
-      platform = if lib.hasInfix "linux" python3.stdenv.hostPlatform.system then "linux_x86_64" else "win_amd64";
-      manylinuxPlatform = if lib.hasInfix "linux" python3.stdenv.hostPlatform.system then "manylinux_2_28_x86_64" else "win_amd64";
+      torchSrc = fetchFromGitHub {
+        owner = "pytorch";
+        repo = "pytorch";
+        rev = "3db8623dcba7c46ceed5bafc8f43cdd99c79c89d";
+        hash = "sha256-G9BPJltsFDcCS6lZfIspBTBwVlv9/D8KRcolySl3xRs=";
+        fetchSubmodules = true;
+      };
+      
+      torchvisionSrc = fetchFromGitHub {
+        owner = "pytorch";
+        repo = "vision";
+        rev = "b818d320a14a2e6d9d9f28853e9e7beae703e52e";
+        hash = "sha256-WtX9t3XrXP0pJI1i2yOH/MtPbpdGue8YddenfFrlxQM=";
+      };
+      
+      torchaudioSrc = fetchFromGitHub {
+        owner = "pytorch";
+        repo = "audio";
+        rev = "f6dfe1231dcdd221a68416e49ab85c2575cbb824";
+        hash = "sha256-0ASFFSbIGbBmdVMhQ6zGNXLZRxl7kbWrPX16VcfEkts=";
+        fetchSubmodules = true;
+      };
     in {
       torch = python3Packages.torch.overrideAttrs (oldAttrs: rec {
-        version = "2.9.0.dev20250726+xpu";
-        format = "wheel";
-        src = fetchurl {
-          url = "https://download.pytorch.org/whl/nightly/xpu/torch-${lib.replaceStrings ["+"] ["%2B"] version}-${pyVer}-${pyVer}-${platform}.whl";
-          hash = "sha256-qtmCRz753pJZ3cuDOOAAJVZ94L085gn5zH0Aplt6cC0=";
-        };
-        # Skip build phases since it's a wheel
-        dontBuild = true;
-        dontConfigure = true;
-        # Disable import checks to avoid MPI issues during build
-        pythonImportsCheck = [ ];
-        doCheck = false;
-        # Remove build inputs that aren't needed for wheels
-        nativeBuildInputs = [ ];
-        buildInputs = [ ];
+        version = "2.9.0-dev+xpu";
+        src = torchSrc;
       });
       
       torchvision = python3Packages.torchvision.overrideAttrs (oldAttrs: rec {
-        version = "0.24.0.dev20250726+xpu";
-        format = "wheel";
-        src = fetchurl {
-          url = "https://download.pytorch.org/whl/nightly/xpu/torchvision-${lib.replaceStrings ["+"] ["%2B"] version}-${pyVer}-${pyVer}-${manylinuxPlatform}.whl";
-          hash = "sha256-ivpudeUKhOD7OXFoOVYUnYQGj0BPazy1gahkS8/2yjc=";
-        };
-        dontBuild = true;
-        dontConfigure = true;
-        pythonImportsCheck = [ ];
-        doCheck = false;
-        nativeBuildInputs = [ ];
-        buildInputs = [ ];
-        # Update dependencies to use XPU torch (using new dependencies format)
+        version = "0.24.0-dev+xpu";
+        src = torchvisionSrc;
         dependencies = [ torchPackages.torch ] ++ (builtins.filter (dep: dep != python3Packages.torch) (oldAttrs.dependencies or [ ]));
       });
       
       torchaudio = python3Packages.torchaudio.overrideAttrs (oldAttrs: rec {
-        version = "2.8.0.dev20250726+xpu";
-        format = "wheel";
-        src = fetchurl {
-          url = "https://download.pytorch.org/whl/nightly/xpu/torchaudio-${lib.replaceStrings ["+"] ["%2B"] version}-${pyVer}-${pyVer}-${manylinuxPlatform}.whl";
-          hash = "sha256-Fogn36XmXtB5sz2UuPdMVmHkoqc5Kuvtyig8J/uVigA=";
-        };
-        dontBuild = true;
-        dontConfigure = true;
-        pythonImportsCheck = [ ];
-        doCheck = false;
-        nativeBuildInputs = [ ];
-        buildInputs = [ ];
+        version = "2.8.0-dev+xpu";
+        src = torchaudioSrc;
         dependencies = [ torchPackages.torch ] ++ (builtins.filter (dep: dep != python3Packages.torch) (oldAttrs.dependencies or [ ]));
       });
     }
