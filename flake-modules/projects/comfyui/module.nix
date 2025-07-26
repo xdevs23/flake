@@ -13,6 +13,7 @@ let
   comfyuiPackage = cfg.package.override {
     withModels = cfg.models;
     withCustomNodes = cfg.customNodes;
+    withXpu = cfg.acceleration == "xpu";
   };
 
   accelerationPkgs = let
