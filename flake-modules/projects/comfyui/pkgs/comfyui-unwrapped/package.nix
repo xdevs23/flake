@@ -21,7 +21,7 @@ let
         format = "wheel";
         
         src = fetchurl {
-          url = "https://download.pytorch.org/whl/nightly/xpu/torch-${version}-${pyVer}-${pyVer}-${platform}.whl";
+          url = "https://download.pytorch.org/whl/nightly/xpu/torch-${lib.replaceStrings ["+"] ["%2B"] version}-${pyVer}-${pyVer}-${platform}.whl";
           hash = "sha256-qtmCRz753pJZ3cuDOOAAJVZ94L085gn5zH0Aplt6cC0=";
         };
         
@@ -42,7 +42,7 @@ let
         format = "wheel";
         
         src = fetchurl {
-          url = "https://download.pytorch.org/whl/nightly/xpu/torchvision-${version}-${pyVer}-${pyVer}-${manylinuxPlatform}.whl";
+          url = "https://download.pytorch.org/whl/nightly/xpu/torchvision-${lib.replaceStrings ["+"] ["%2B"] version}-${pyVer}-${pyVer}-${manylinuxPlatform}.whl";
           hash = "sha256-ivpudeUKhOD7OXFoOVYUnYQGj0BPazy1gahkS8/2yjc=";
         };
         
@@ -58,7 +58,7 @@ let
         format = "wheel";
         
         src = fetchurl {
-          url = "https://download.pytorch.org/whl/nightly/xpu/torchaudio-${version}-${pyVer}-${pyVer}-${manylinuxPlatform}.whl";
+          url = "https://download.pytorch.org/whl/nightly/xpu/torchaudio-${lib.replaceStrings ["+"] ["%2B"] version}-${pyVer}-${pyVer}-${manylinuxPlatform}.whl";
           hash = "sha256-Fogn36XmXtB5sz2UuPdMVmHkoqc5Kuvtyig8J/uVigA=";
         };
         
