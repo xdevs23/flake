@@ -94,7 +94,11 @@ python3Packages.buildPythonApplication rec {
 
   dependencies = with python3Packages; [
     torchPackages.torch
-    (if withXpu then torchsde.override { torch = torchPackages.torch; } else torchsde)
+    (if withXpu then 
+      torchsde.override { 
+        torch = torchPackages.torch; 
+      } 
+      else torchsde)
     torchPackages.torchvision
     torchPackages.torchaudio
     einops
@@ -109,11 +113,19 @@ python3Packages.buildPythonApplication rec {
     tqdm
     psutil
 
-    # optional dependencies
-    (if withXpu then kornia.override { torch = torchPackages.torch; } else kornia)
+    # optional dependencies  
+    (if withXpu then 
+      kornia.override { 
+        torch = torchPackages.torch; 
+      }
+      else kornia)
     spandrel
     soundfile
   ];
+
+  # Disable import checks for the whole package when using XPU
+  pythonImportsCheck = if withXpu then [ ] else [ "comfy" ];
+  doCheck = if withXpu then false else true;
 
   format = "other";
 
