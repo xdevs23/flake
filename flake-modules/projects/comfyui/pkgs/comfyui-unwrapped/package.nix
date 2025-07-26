@@ -1,5 +1,6 @@
 { lib
 , fetchFromGitHub
+, fetchurl
 , python3Packages
 , python3
 , withXpu ? false
@@ -19,12 +20,7 @@ let
         version = "2.9.0.dev20250726+xpu";
         format = "wheel";
         
-        src = python3Packages.fetchPypi {
-          inherit pname version format;
-          dist = pyVer;
-          python = pyVer;
-          abi = pyVer;
-          platform = platform;
+        src = fetchurl {
           url = "https://download.pytorch.org/whl/nightly/xpu/torch-${version}-${pyVer}-${pyVer}-${platform}.whl";
           hash = "sha256-qtmCRz753pJZ3cuDOOAAJVZ94L085gn5zH0Aplt6cC0=";
         };
@@ -45,12 +41,7 @@ let
         version = "0.24.0.dev20250726+xpu";
         format = "wheel";
         
-        src = python3Packages.fetchPypi {
-          inherit pname version format;
-          dist = pyVer;
-          python = pyVer;
-          abi = pyVer;
-          platform = manylinuxPlatform;
+        src = fetchurl {
           url = "https://download.pytorch.org/whl/nightly/xpu/torchvision-${version}-${pyVer}-${pyVer}-${manylinuxPlatform}.whl";
           hash = "sha256-ivpudeUKhOD7OXFoOVYUnYQGj0BPazy1gahkS8/2yjc=";
         };
@@ -66,12 +57,7 @@ let
         version = "2.8.0.dev20250726+xpu";
         format = "wheel";
         
-        src = python3Packages.fetchPypi {
-          inherit pname version format;
-          dist = pyVer;
-          python = pyVer;
-          abi = pyVer;
-          platform = manylinuxPlatform;
+        src = fetchurl {
           url = "https://download.pytorch.org/whl/nightly/xpu/torchaudio-${version}-${pyVer}-${pyVer}-${manylinuxPlatform}.whl";
           hash = "sha256-Fogn36XmXtB5sz2UuPdMVmHkoqc5Kuvtyig8J/uVigA=";
         };
