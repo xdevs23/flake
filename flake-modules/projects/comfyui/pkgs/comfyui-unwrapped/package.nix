@@ -14,8 +14,8 @@ let
       torchSrc = fetchFromGitHub {
         owner = "pytorch";
         repo = "pytorch";
-        rev = "3db8623dcba7c46ceed5bafc8f43cdd99c79c89d";
-        hash = "sha256-dryQ1I4RemvdCdC9Qu5i6ZTeeTHtmBjkMYN4NG5+TVA=";
+        rev = "f6761f2968ca4e8ca1c6fbe4771c804a8bdcafb6";
+        hash = "sha256-dryQ1I4RemvdCdC9Qu5i6ZTeeTHtmBjfMYN4NG5+TVA=";
         fetchSubmodules = true;
       };
       
