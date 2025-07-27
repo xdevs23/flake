@@ -15,7 +15,7 @@ let
         owner = "pytorch";
         repo = "pytorch";
         rev = "f6761f2968ca4e8ca1c6fbe4771c804a8bdcafb6";
-        hash = "sha256-dryQ1I4RemvdCdC9Qu5i6ZTeeTHtmBjfMYN4NG5+TVA=";
+        hash = "sha256-CDUOKZDo6z6bPlhOt3R5jZB5rpqIkjs3fxlbL0CbFEU=";
         fetchSubmodules = true;
       };
       
